@@ -1,0 +1,15 @@
+deepchem==2.2.1.dev54
+h5py==2.10.0
+joblib==0.14.0
+numpy==1.17.2
+pandas==0.25.1
+scikit-learn==0.21.3
+scipy==1.3.1
+six==1.12.0
+sklearn==0.0
+tensorflow==1.13.2
+matplotlib==3.1.1
+nglview==2.7.1
+mdtraj==1.9.3
+biopython==1.74
+torch==0.4.1
