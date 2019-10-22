@@ -16,8 +16,15 @@ sudo apt-get install openbabel
 ```
 
 
-#### 2. Install Dependencies
+#### 2. Create conda environment and install dependencies
 
 ```
+conda create -c rdkit -n {NAME} rdkit
+conda activate {NAME}
 pip install -r requirements.txt
+```
+
+#### 3. Train.
+```
+python train.py
 ```
