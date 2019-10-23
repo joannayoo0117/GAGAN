@@ -113,8 +113,8 @@ def train(epoch):
     avg_loss = torch.mean(torch.Tensor(losses_batch))
     avg_acc = torch.mean(torch.Tensor(acc_batch))
 
-    writer.add_scalar('Training Loss', avg_loss.data.items(), epoch)
-    writer.add_scalar('Training Accuracy', avg_acc.data.items(), epoch)
+    writer.add_scalar('Training Loss', avg_loss.data.item(), epoch)
+    writer.add_scalar('Training Accuracy', avg_acc.data.item(), epoch)
 
     print('Epoch: {:04d}'.format(epoch+1),
           'loss_train: {:.4f}'.format(avg_loss.data.item()),
@@ -152,8 +152,8 @@ def evaluate(epoch):
     avg_loss = torch.mean(torch.Tensor(losses_batch))
     avg_acc = torch.mean(torch.Tensor(acc_batch))
 
-    writer.add_scalar('Validation Loss', avg_loss.data.items(), epoch)
-    writer.add_scalar('Validation Accuracy', avg_acc.data.items(), epoch)
+    writer.add_scalar('Validation Loss', avg_loss.data.item(), epoch)
+    writer.add_scalar('Validation Accuracy', avg_acc.data.item(), epoch)
 
     print("Validation set results:",
           "loss= {:.4f}".format(avg_loss.data),
