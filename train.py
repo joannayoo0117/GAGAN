@@ -205,7 +205,7 @@ for epoch in range(args.epochs):
 
     if epoch % 20 == 0:
         evaluate(epoch)
-    torch.save(model.state_dict(), '{}.pkl'.format(epoch))
+    torch.save(model.state_dict(), '{}/{}.pkl'.format(args.model_dir, epoch))
 
     if loss_values[-1] < best:
         best = loss_values[-1]
@@ -217,13 +217,13 @@ for epoch in range(args.epochs):
     if bad_counter == args.patience:
         break
 
-    files = glob.glob('*.pkl')
+    files = glob.glob('{}/*.pkl'.format(args.model_dir))
     for file in files:
         epoch_nb = int(file.split('.')[0])
         if epoch_nb < best_epoch:
             os.remove(file)
 
-files = glob.glob('*.pkl')
+files = glob.glob('{}/*.pkl'.format(args.model_dir))
 for file in files:
     epoch_nb = int(file.split('.')[0])
     if epoch_nb > best_epoch:
