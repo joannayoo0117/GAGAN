@@ -169,7 +169,7 @@ def pdb2graph(pdbid, data_dir='./data/pdbbind/v2018'):
     """
 
     protein_pdb_file = os.path.join(
-        data_dir, pdbid, "{}_protein.pdb".format(pdbid))
+        data_dir, pdbid, "{}_pocket.pdb".format(pdbid))
     ligand_pdb_file = os.path.join(
         data_dir, pdbid, "{}_ligand.pdb".format(pdbid))
 
