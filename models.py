@@ -32,8 +32,9 @@ class Model(nn.Module):
         self.out_layer = nn.Linear(dim_dense, n_out)
 
 
-    def forward(self, X, A, D):
-        A2 = self.adjacency_matrix_transformer(A, D)
+    def forward(self, X, A, A2):
+        # TODO Turning off adjacency matrix transformer
+        #A2 = self.adjacency_matrix_transformer(A, D)
 
         X2 = X.clone().detach()
 

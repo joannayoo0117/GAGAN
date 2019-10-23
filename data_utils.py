@@ -26,10 +26,10 @@ class PDBBindDataset(Dataset):
     def __getitem__(self, index):
         pdbid = self.data.loc[index, 'id']
         try:
-            X, A, D = get_pdbbind_features(pdbid, data_dir=self.data_dir)        
+            X, A, A2 = get_pdbbind_features(pdbid, data_dir=self.data_dir)
             # label = one_hot_encoding(self.data.loc[index, 'label'], {0, 1})
             label = self.data.loc[index, 'label']
-            return (torch.Tensor(X), torch.Tensor(A), torch.Tensor(D)), label
+            return (torch.Tensor(X), torch.Tensor(A), torch.Tensor(A2)), label
 
         except BaseException as e:
             print('Could not get features for PDBID {}'.format(pdbid))

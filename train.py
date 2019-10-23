@@ -89,16 +89,16 @@ def train(epoch):
     acc_batch = []
     for _ in range(args.batch_size): # not really "the batch"
         try:
-            (X, A, D), label = next(iter(train_loader))
+            (X, A, A2), label = next(iter(train_loader))
             if args.cuda:
                 X = X.cuda()
                 A = A.cuda()
-                D = D.cuda()
+                A2 = A2.cuda()
                 label = label.cuda()
 
             output = model(X=X.squeeze(), 
                            A=A.squeeze(), 
-                           D=D.squeeze())
+                           A2=A2.squeeze())
             loss_train = criterion(output, label.float())
             acc_train = accuracy(output, label)
 
@@ -134,17 +134,17 @@ def evaluate(epoch):
     acc_batch = []
     for _ in range(args.batch_size):
         try:
-            (X, A, D), label = next(iter(val_loader))
+            (X, A, A2), label = next(iter(val_loader))
 
             if args.cuda:
                 X = X.cuda()
                 A = A.cuda()
-                D = D.cuda()
+                A2 = A2.cuda()
                 label = label.cuda()
 
             output = model(X=X.squeeze(), 
-                        A=A.squeeze(), 
-                        D=D.squeeze())
+                           A=A.squeeze(), 
+                           A2=A2.squeeze())
             loss_val = criterion(output, label.float())
             acc_val = accuracy(output, label)
 
@@ -175,17 +175,17 @@ def compute_test():
 
     for _ in range(len(test_loader)):
         try:
-            (X, A, D), label = next(iter(test_loader))
+            (X, A, A2), label = next(iter(test_loader))
 
             if args.cuda:
                 X = X.cuda()
                 A = A.cuda()
-                D = D.cuda()
+                A2 = A2.cuda()
                 label = label.cuda()
 
             output = model(X=X.squeeze(), 
                         A=A.squeeze(), 
-                        D=D.squeeze())
+                        A2=A2.squeeze())
             loss_test = criterion(output, label.float())
             acc_test = accuracy(output, label)
             
@@ -214,7 +214,8 @@ for epoch in range(args.epochs):
 
     if epoch % 20 == 0:
         evaluate(epoch)
-    torch.save(model.state_dict(), '{}/{}.pkl'.format(args.model_dir, epoch))
+        torch.save(model.state_dict(), 
+            '{}/{}.pkl'.format(args.model_dir, epoch))
 
     if loss_values[-1] < best:
         best = loss_values[-1]
