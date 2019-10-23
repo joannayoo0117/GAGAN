@@ -34,5 +34,10 @@ class Hparams:
     parser.add_argument('--dropout', type=float, default=0.3, 
         help='Dropout rate (1 - keep probability).')
     parser.add_argument('--patience', type=int, default=100, help='Patience')
+
     parser.add_argument('--model_file', type=str, default='./model/sample.pkl', 
         help='Model File for testing')
+    parser.add_argument('--model_dir', type=str, default='./model',
+        help='Directory to save model')
+    parser.add_argument('--log_dir', type=str, default='./logs',
+        help='Directory to save logs')

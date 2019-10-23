@@ -55,7 +55,8 @@ def compute_test():
 
     losses_batch = []
     acc_batch = []
-    for _ in range(args.batch_size):
+
+    for _ in range(len(test_loader)):
         try:
             (X, A, D), label = next(iter(test_loader))
 

@@ -10,9 +10,9 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-from torch.autograd import Variable
 from torch.utils.data.sampler import SubsetRandomSampler
 from torch.utils.data import DataLoader
+from torch.utils.tensorboard import SummaryWriter
 
 from data_utils import PDBBindDataset, accuracy
 from models import Model
@@ -22,6 +22,8 @@ hparams = Hparams()
 parser = hparams.parser
 args = parser.parse_args()
 args.cuda = not args.no_cuda and torch.cuda.is_available()
+
+writer = SummaryWriter(log_dir = args.log_dir)
 
 random.seed(args.seed)
 np.random.seed(args.seed)
@@ -104,6 +106,10 @@ def train(epoch):
 
     avg_loss = torch.mean(torch.Tensor(losses_batch))
     avg_acc = torch.mean(torch.Tensor(acc_batch))
+
+    writer.add_scalar('Training Loss', avg_loss.data.items(), epoch)
+    writer.add_scalar('Training Accuracy', avg_acc.data.items(), epoch)
+
     print('Epoch: {:04d}'.format(epoch+1),
           'loss_train: {:.4f}'.format(avg_loss.data.item()),
           'acc_train: {:.4f}'.format(avg_acc.data.item()),
@@ -111,7 +117,7 @@ def train(epoch):
 
     return avg_loss.data.item()
 
-def evaluate():
+def evaluate(epoch):
     model.eval()
 
     losses_batch = []
@@ -140,6 +146,9 @@ def evaluate():
     avg_loss = torch.mean(torch.Tensor(losses_batch))
     avg_acc = torch.mean(torch.Tensor(acc_batch))
 
+    writer.add_scalar('Validation Loss', avg_loss.data.items(), epoch)
+    writer.add_scalar('Validation Accuracy', avg_acc.data.items(), epoch)
+
     print("Validation set results:",
           "loss= {:.4f}".format(avg_loss.data),
           "accuracy= {:.4f}".format(avg_acc.data))
@@ -150,7 +159,8 @@ def compute_test():
 
     losses_batch = []
     acc_batch = []
-    for _ in range(args.batch_size):
+
+    for _ in range(len(test_loader)):
         try:
             (X, A, D), label = next(iter(test_loader))
 
@@ -171,8 +181,6 @@ def compute_test():
         except BaseException as e:
             print(e)
     
-    print(losses_batch)
-    print(acc_batch)
     avg_loss = torch.mean(torch.Tensor(losses_batch))
     avg_acc = torch.mean(torch.Tensor(acc_batch))
 
@@ -190,7 +198,7 @@ for epoch in range(args.epochs):
     loss_values.append(train(epoch))
 
     if epoch % 20 == 0:
-        evaluate()
+        evaluate(epoch)
     torch.save(model.state_dict(), '{}.pkl'.format(epoch))
 
     if loss_values[-1] < best:
