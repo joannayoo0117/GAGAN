@@ -111,18 +111,21 @@ def train(epoch):
             print(e)
             pass
 
-    avg_loss = torch.mean(torch.Tensor(losses_batch))
-    avg_acc = torch.mean(torch.Tensor(acc_batch))
+    if len(losses_batch) > 0: # tmp solution to deal with the corrupt data
+        avg_loss = torch.mean(torch.Tensor(losses_batch))
+        avg_acc = torch.mean(torch.Tensor(acc_batch))
 
-    writer.add_scalar('Training Loss', avg_loss.data.item(), epoch)
-    writer.add_scalar('Training Accuracy', avg_acc.data.item(), epoch)
+        writer.add_scalar('Training Loss', avg_loss.data.item(), epoch)
+        writer.add_scalar('Training Accuracy', avg_acc.data.item(), epoch)
 
-    print('Epoch: {:04d}'.format(epoch+1),
-          'loss_train: {:.4f}'.format(avg_loss.data.item()),
-          'acc_train: {:.4f}'.format(avg_acc.data.item()),
-          'time: {:.4f}s'.format(time.time() - t))
+        print('Epoch: {:04d}'.format(epoch+1),
+            'loss_train: {:.4f}'.format(avg_loss.data.item()),
+            'acc_train: {:.4f}'.format(avg_acc.data.item()),
+            'time: {:.4f}s'.format(time.time() - t))
 
-    return avg_loss.data.item()
+        return avg_loss.data.item()
+    else:
+        return
 
 def evaluate(epoch):
     model.eval()
@@ -149,17 +152,20 @@ def evaluate(epoch):
             acc_batch.append(acc_val)
         except BaseException as e:
             print(e)
-        
-    avg_loss = torch.mean(torch.Tensor(losses_batch))
-    avg_acc = torch.mean(torch.Tensor(acc_batch))
 
-    writer.add_scalar('Validation Loss', avg_loss.data.item(), epoch)
-    writer.add_scalar('Validation Accuracy', avg_acc.data.item(), epoch)
+    if len(losses_batch) > 0:
+        avg_loss = torch.mean(torch.Tensor(losses_batch))
+        avg_acc = torch.mean(torch.Tensor(acc_batch))
 
-    print("Validation set results:",
-          "loss= {:.4f}".format(avg_loss.data),
-          "accuracy= {:.4f}".format(avg_acc.data))
+        writer.add_scalar('Validation Loss', avg_loss.data.item(), epoch)
+        writer.add_scalar('Validation Accuracy', avg_acc.data.item(), epoch)
 
+        print("Validation set results:",
+            "loss= {:.4f}".format(avg_loss.data),
+            "accuracy= {:.4f}".format(avg_acc.data))
+        return avg_loss.data.item()
+    else:
+        return
 
 def compute_test():
     model.eval()
@@ -202,7 +208,9 @@ bad_counter = 0
 best = args.epochs + 1
 best_epoch = 0
 for epoch in range(args.epochs):
-    loss_values.append(train(epoch))
+    loss = train(epoch)
+    if loss:
+        loss_values.append(loss)
 
     if epoch % 20 == 0:
         evaluate(epoch)
