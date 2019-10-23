@@ -45,7 +45,7 @@ class GateAugmentedGraphAttentionLayer(nn.Module):
         gate = F.sigmoid(torch.mm(torch.cat([X.squeeze(), h], dim=1), self.U)\
             + torch.cat(N * [self.b]).view((N, 1)))
         X_out = torch.mul(gate, h) \
-            + torch.mul((torch.ones(gate.size()) - gate), h_prime)
+            + torch.mul((torch.ones(gate.size()).type_as(gate) - gate), h_prime)
         
         return X_out
 
