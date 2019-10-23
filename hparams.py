@@ -5,6 +5,8 @@ class Hparams:
     
     parser.add_argument('--no-cuda', action='store_true', default=False, 
         help='Disables CUDA training.')
+    parser.add_argument('--cuda_device', type=int, default=0,
+        help="Specifies cuda device")
     parser.add_argument('--seed', type=int, default=72, 
         help='Random seed.')
     parser.add_argument('--epochs', type=int, default=10000, 

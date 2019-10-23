@@ -20,6 +20,12 @@ parser = hparams.parser
 args = parser.parse_args()
 args.cuda = not args.no_cuda and torch.cuda.is_available()
 
+if args.cuda:
+    try:
+        torch.cuda.device(args.cuda_device)
+    except BaseException as e:
+        print(e)
+
 random.seed(args.seed)
 np.random.seed(args.seed)
 torch.manual_seed(args.seed)
