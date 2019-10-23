@@ -239,3 +239,4 @@ model.load_state_dict(
 
 # Testing
 compute_test()
+writer.close()
