@@ -219,13 +219,13 @@ for epoch in range(args.epochs):
 
     files = glob.glob('{}/*.pkl'.format(args.model_dir))
     for file in files:
-        epoch_nb = int(file.split('.')[0])
+        epoch_nb = int(os.path.basename(file).split('.')[0])
         if epoch_nb < best_epoch:
             os.remove(file)
 
 files = glob.glob('{}/*.pkl'.format(args.model_dir))
 for file in files:
-    epoch_nb = int(file.split('.')[0])
+    epoch_nb = int(os.path.basename(file).split('.')[0])
     if epoch_nb > best_epoch:
         os.remove(file)
 
@@ -234,7 +234,8 @@ print("Total time elapsed: {:.4f}s".format(time.time() - t_total))
 
 # Restore best model
 print('Loading {}th epoch'.format(best_epoch))
-model.load_state_dict(torch.load('{}.pkl'.format(best_epoch)))
+model.load_state_dict(
+    torch.load('{}/{}.pkl'.format(args.model_dir, best_epoch)))
 
 # Testing
 compute_test()
