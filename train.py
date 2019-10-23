@@ -10,9 +10,9 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-from torch.autograd import Variable
 from torch.utils.data.sampler import SubsetRandomSampler
 from torch.utils.data import DataLoader
+from torch.utils.tensorboard import SummaryWriter
 
 from data_utils import PDBBindDataset, accuracy
 from models import Model
@@ -22,6 +22,14 @@ hparams = Hparams()
 parser = hparams.parser
 args = parser.parse_args()
 args.cuda = not args.no_cuda and torch.cuda.is_available()
+
+if args.cuda:
+    try:
+        torch.cuda.device(args.cuda_device)
+    except BaseException as e:
+        print(e)
+
+writer = SummaryWriter(log_dir = args.log_dir)
 
 random.seed(args.seed)
 np.random.seed(args.seed)
@@ -56,7 +64,7 @@ val_loader = DataLoader(dataset,
                         batch_size=1,
                         sampler=val_sampler)
 
-model = Model(n_out=dataset.__nlabels__(),
+model = Model(n_out=1,
               n_feat=dataset.__nfeats__(), 
               n_attns=args.n_attns, 
               n_dense=args.n_dense,
@@ -66,6 +74,7 @@ model = Model(n_out=dataset.__nlabels__(),
 optimizer = optim.Adam(model.parameters(), 
                        lr=args.lr, 
                        weight_decay=args.weight_decay)
+criterion = nn.BCELoss()
 
 if args.cuda:
     model.cuda()
@@ -80,17 +89,17 @@ def train(epoch):
     acc_batch = []
     for _ in range(args.batch_size): # not really "the batch"
         try:
-            (X, A, D), label = next(iter(train_loader))
+            (X, A, A2), label = next(iter(train_loader))
             if args.cuda:
                 X = X.cuda()
                 A = A.cuda()
-                D = D.cuda()
+                A2 = A2.cuda()
                 label = label.cuda()
 
             output = model(X=X.squeeze(), 
                            A=A.squeeze(), 
-                           D=D.squeeze())
-            loss_train = F.nll_loss(output.unsqueeze(0), label.long())
+                           A2=A2.squeeze())
+            loss_train = criterion(output, label.float())
             acc_train = accuracy(output, label)
 
             losses_batch.append(loss_train)
@@ -102,68 +111,82 @@ def train(epoch):
             print(e)
             pass
 
-    avg_loss = torch.mean(torch.Tensor(losses_batch))
-    avg_acc = torch.mean(torch.Tensor(acc_batch))
-    print('Epoch: {:04d}'.format(epoch+1),
-          'loss_train: {:.4f}'.format(avg_loss.data.item()),
-          'acc_train: {:.4f}'.format(avg_acc.data.item()),
-          'time: {:.4f}s'.format(time.time() - t))
+    if len(losses_batch) > 0: # tmp solution to deal with the corrupt data
+        avg_loss = torch.mean(torch.Tensor(losses_batch))
+        avg_acc = torch.mean(torch.Tensor(acc_batch))
 
-    return avg_loss.data.item()
+        writer.add_scalar('Training Loss', avg_loss.data.item(), epoch)
+        writer.add_scalar('Training Accuracy', avg_acc.data.item(), epoch)
 
-def evaluate():
+        print('Epoch: {:04d}'.format(epoch+1),
+            'loss_train: {:.4f}'.format(avg_loss.data.item()),
+            'acc_train: {:.4f}'.format(avg_acc.data.item()),
+            'time: {:.4f}s'.format(time.time() - t))
+
+        return avg_loss.data.item()
+    else:
+        return
+
+def evaluate(epoch):
     model.eval()
 
     losses_batch = []
     acc_batch = []
     for _ in range(args.batch_size):
         try:
-            (X, A, D), label = next(iter(val_loader))
+            (X, A, A2), label = next(iter(val_loader))
 
             if args.cuda:
                 X = X.cuda()
                 A = A.cuda()
-                D = D.cuda()
+                A2 = A2.cuda()
                 label = label.cuda()
 
             output = model(X=X.squeeze(), 
-                        A=A.squeeze(), 
-                        D=D.squeeze())
-            loss_val = F.nll_loss(output.unsqueeze(0), label.long())
+                           A=A.squeeze(), 
+                           A2=A2.squeeze())
+            loss_val = criterion(output, label.float())
             acc_val = accuracy(output, label)
 
             losses_batch.append(loss_val)
             acc_batch.append(acc_val)
         except BaseException as e:
             print(e)
-        
-    avg_loss = torch.mean(torch.Tensor(losses_batch))
-    avg_acc = torch.mean(torch.Tensor(acc_batch))
 
-    print("Validation set results:",
-          "loss= {:.4f}".format(avg_loss.data),
-          "accuracy= {:.4f}".format(avg_acc.data))
+    if len(losses_batch) > 0:
+        avg_loss = torch.mean(torch.Tensor(losses_batch))
+        avg_acc = torch.mean(torch.Tensor(acc_batch))
 
+        writer.add_scalar('Validation Loss', avg_loss.data.item(), epoch)
+        writer.add_scalar('Validation Accuracy', avg_acc.data.item(), epoch)
+
+        print("Validation set results:",
+            "loss= {:.4f}".format(avg_loss.data),
+            "accuracy= {:.4f}".format(avg_acc.data))
+        return avg_loss.data.item()
+    else:
+        return
 
 def compute_test():
     model.eval()
 
     losses_batch = []
     acc_batch = []
-    for _ in range(args.batch_size):
+
+    for _ in range(len(test_loader)):
         try:
-            (X, A, D), label = next(iter(test_loader))
+            (X, A, A2), label = next(iter(test_loader))
 
             if args.cuda:
                 X = X.cuda()
                 A = A.cuda()
-                D = D.cuda()
+                A2 = A2.cuda()
                 label = label.cuda()
 
             output = model(X=X.squeeze(), 
                         A=A.squeeze(), 
-                        D=D.squeeze())
-            loss_test = F.nll_loss(output.unsqueeze(0), label.long())
+                        A2=A2.squeeze())
+            loss_test = criterion(output, label.float())
             acc_test = accuracy(output, label)
             
             losses_batch.append(loss_test)
@@ -171,8 +194,6 @@ def compute_test():
         except BaseException as e:
             print(e)
     
-    print(losses_batch)
-    print(acc_batch)
     avg_loss = torch.mean(torch.Tensor(losses_batch))
     avg_acc = torch.mean(torch.Tensor(acc_batch))
 
@@ -187,11 +208,14 @@ bad_counter = 0
 best = args.epochs + 1
 best_epoch = 0
 for epoch in range(args.epochs):
-    loss_values.append(train(epoch))
+    loss = train(epoch)
+    if loss:
+        loss_values.append(loss)
 
     if epoch % 20 == 0:
-        evaluate()
-    torch.save(model.state_dict(), '{}.pkl'.format(epoch))
+        evaluate(epoch)
+        torch.save(model.state_dict(), 
+            '{}/{}.pkl'.format(args.model_dir, epoch))
 
     if loss_values[-1] < best:
         best = loss_values[-1]
@@ -203,15 +227,15 @@ for epoch in range(args.epochs):
     if bad_counter == args.patience:
         break
 
-    files = glob.glob('*.pkl')
+    files = glob.glob('{}/*.pkl'.format(args.model_dir))
     for file in files:
-        epoch_nb = int(file.split('.')[0])
+        epoch_nb = int(os.path.basename(file).split('.')[0])
         if epoch_nb < best_epoch:
             os.remove(file)
 
-files = glob.glob('*.pkl')
+files = glob.glob('{}/*.pkl'.format(args.model_dir))
 for file in files:
-    epoch_nb = int(file.split('.')[0])
+    epoch_nb = int(os.path.basename(file).split('.')[0])
     if epoch_nb > best_epoch:
         os.remove(file)
 
@@ -220,7 +244,9 @@ print("Total time elapsed: {:.4f}s".format(time.time() - t_total))
 
 # Restore best model
 print('Loading {}th epoch'.format(best_epoch))
-model.load_state_dict(torch.load('{}.pkl'.format(best_epoch)))
+model.load_state_dict(
+    torch.load('{}/{}.pkl'.format(args.model_dir, best_epoch)))
 
 # Testing
 compute_test()
+writer.close()

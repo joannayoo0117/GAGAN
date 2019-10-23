@@ -169,7 +169,7 @@ def pdb2graph(pdbid, data_dir='./data/pdbbind/v2018'):
     """
 
     protein_pdb_file = os.path.join(
-        data_dir, pdbid, "{}_protein.pdb".format(pdbid))
+        data_dir, pdbid, "{}_pocket.pdb".format(pdbid))
     ligand_pdb_file = os.path.join(
         data_dir, pdbid, "{}_ligand.pdb".format(pdbid))
 
@@ -210,8 +210,10 @@ def build_p2l_distance_matrix(protein_adj_list,
     def build_distance_vec(dist_vec, d, max_d,
                            connected_nodes, adjacency_list):
         for node_index in connected_nodes:
-            if dist_vec[node_index] == 0:
-                dist_vec[node_index] = d + 1
+            if dist_vec[node_index] == np.inf:
+                dist_vec[node_index] = 1
+            elif dist_vec[node_index] < np.inf:
+                dist_vec[node_index] += 1
         if d == max_d - 1:
             return dist_vec
         else:
@@ -225,7 +227,7 @@ def build_p2l_distance_matrix(protein_adj_list,
         ligand2protein = [j for j in complex_adj_list[ligand_index]
                           if j < num_protein_atoms]
 
-        dist_vec = np.zeros((num_protein_atoms))
+        dist_vec = np.array([np.inf for _ in range(num_protein_atoms)])
         dist_vec_final = build_distance_vec(
             dist_vec, 0, max_distance,
             ligand2protein, protein_adj_list)
@@ -233,6 +235,20 @@ def build_p2l_distance_matrix(protein_adj_list,
         distance_mat.append(dist_vec_final)
 
     return np.array(distance_mat)
+
+
+def transform_distance_graph(D, mode='gaussian', mu=0, sigma=10):
+    """
+    Temporary solution to see if learable parameter for 
+    distance-aware adjacency matrix is a good idea
+    """
+    div = lambda i: 1 / i if i > 0 else 0
+    gaussian = lambda i: np.exp(-(i - mu)**2 / sigma) if i > 0 else 0
+
+    f = np.vectorize(eval(mode))
+    D = f(D)
+
+    return D
 
 
 def build_adjacency_matrix(adj_list):
@@ -249,7 +265,7 @@ def build_adjacency_matrix(adj_list):
 
     return adjacency_matrix
 
-def get_pdbbind_features(pdbid, data_dir='./data/pdbbind'):
+def get_pdbbind_features(pdbid, data_dir='./data/pdbbind/v2018'):
     (protein_graph, ligand_graph, complex_graph) = pdb2graph(pdbid, data_dir)
     node_feat_p, adj_list_p = protein_graph
     node_feat_l, adj_list_l = ligand_graph
@@ -266,5 +282,12 @@ def get_pdbbind_features(pdbid, data_dir='./data/pdbbind'):
     A = build_adjacency_matrix(adj_list_c)
 
     D = build_p2l_distance_matrix(adj_list_p, adj_list_l, adj_list_c)
+    # This is a temporary solution to fix the DAAM
+    D = transform_distance_graph(D)
+    (dim_l, dim_p) = D.shape
 
-    return X, A, D
+    A2 = np.copy(A)
+    A2[-dim_l:, :dim_p] = D
+    A2[:dim_p, -dim_l:] = D.transpose() 
+
+    return X, A, A2
