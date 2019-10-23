@@ -17,10 +17,12 @@ sudo apt-get install openbabel
 
 
 #### 2. Create conda environment and install dependencies
+WARNING: RDKit seems to crash when pytorch is installed with pip ([reference](https://github.com/molecularsets/moses/issues/40)). Download pytorch with conda to resolve this issue.
 
 ```
 conda create -c rdkit -n {NAME} rdkit
 conda activate {NAME}
+conda install -c pytorch pytorch==1.2.0
 pip install -r requirements.txt
 ```
 
