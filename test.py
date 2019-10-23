@@ -47,7 +47,7 @@ test_loader = DataLoader(dataset,
                          batch_size=1,
                          sampler=test_sampler)
 
-model = Model(n_out=dataset.__nlabels__(),
+model = Model(n_out=1,
               n_feat=dataset.__nfeats__(), 
               n_attns=args.n_attns, 
               n_dense=args.n_dense,
@@ -55,6 +55,7 @@ model = Model(n_out=dataset.__nlabels__(),
               dim_dense=args.dim_dense,
               dropout=args.dropout)
 
+criterion = nn.BCELoss()
 
 def compute_test():
     model.eval()
@@ -75,7 +76,7 @@ def compute_test():
             output = model(X=X.squeeze(), 
                         A=A.squeeze(), 
                         D=D.squeeze())
-            loss_test = F.nll_loss(output.unsqueeze(0), label.long())
+            loss_test = criterion(output, label.float())
             acc_test = accuracy(output, label)
             
             losses_batch.append(loss_test)

@@ -99,7 +99,7 @@ def train(epoch):
             output = model(X=X.squeeze(), 
                            A=A.squeeze(), 
                            D=D.squeeze())
-            loss_train = criterion(output, label)
+            loss_train = criterion(output, label.float())
             acc_train = accuracy(output, label)
 
             losses_batch.append(loss_train)
@@ -142,7 +142,7 @@ def evaluate(epoch):
             output = model(X=X.squeeze(), 
                         A=A.squeeze(), 
                         D=D.squeeze())
-            loss_val = criterion(output, label)
+            loss_val = criterion(output, label.float())
             acc_val = accuracy(output, label)
 
             losses_batch.append(loss_val)
@@ -180,7 +180,7 @@ def compute_test():
             output = model(X=X.squeeze(), 
                         A=A.squeeze(), 
                         D=D.squeeze())
-            loss_test = criterion(output, label)
+            loss_test = criterion(output, label.float())
             acc_test = accuracy(output, label)
             
             losses_batch.append(loss_test)
