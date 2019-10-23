@@ -64,7 +64,7 @@ val_loader = DataLoader(dataset,
                         batch_size=1,
                         sampler=val_sampler)
 
-model = Model(n_out=dataset.__nlabels__(),
+model = Model(n_out=1,
               n_feat=dataset.__nfeats__(), 
               n_attns=args.n_attns, 
               n_dense=args.n_dense,
@@ -74,6 +74,7 @@ model = Model(n_out=dataset.__nlabels__(),
 optimizer = optim.Adam(model.parameters(), 
                        lr=args.lr, 
                        weight_decay=args.weight_decay)
+criterion = nn.BCELoss()
 
 if args.cuda:
     model.cuda()
@@ -98,7 +99,7 @@ def train(epoch):
             output = model(X=X.squeeze(), 
                            A=A.squeeze(), 
                            D=D.squeeze())
-            loss_train = F.nll_loss(output.unsqueeze(0), label.long())
+            loss_train = criterion(output, label)
             acc_train = accuracy(output, label)
 
             losses_batch.append(loss_train)
@@ -141,7 +142,7 @@ def evaluate(epoch):
             output = model(X=X.squeeze(), 
                         A=A.squeeze(), 
                         D=D.squeeze())
-            loss_val = F.nll_loss(output.unsqueeze(0), label.long())
+            loss_val = criterion(output, label)
             acc_val = accuracy(output, label)
 
             losses_batch.append(loss_val)
@@ -179,7 +180,7 @@ def compute_test():
             output = model(X=X.squeeze(), 
                         A=A.squeeze(), 
                         D=D.squeeze())
-            loss_test = F.nll_loss(output.unsqueeze(0), label.long())
+            loss_test = criterion(output, label)
             acc_test = accuracy(output, label)
             
             losses_batch.append(loss_test)

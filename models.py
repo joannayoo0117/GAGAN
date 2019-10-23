@@ -54,4 +54,4 @@ class Model(nn.Module):
 
         out =  self.out_layer(X_graph)
 
-        return F.log_softmax(out)
+        return F.sigmoid(out)
