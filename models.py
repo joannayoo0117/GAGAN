@@ -46,7 +46,7 @@ class Model(nn.Module):
             X = attn(X=X, A=A)
             X2 = attn(X=X2, A=A2)
 
-        X_graph = torch.sum(X2-X, dim=0)
+        X_graph = torch.mean(X2-X, dim=0).unsqueeze(0)
 
         for layer in self.dense:
             X_graph = F.dropout(X_graph, self.dropout, training=self.training)
@@ -55,7 +55,7 @@ class Model(nn.Module):
 
         out =  self.out_layer(X_graph)
 
-        return F.sigmoid(out)
+        return F.softmax(out, dim=1)
 
 
 
@@ -93,7 +93,7 @@ class GAT(nn.Module):
         x = torch.cat([att(x, adj) for att in self.attentions], dim=1)
         x = F.dropout(x, self.dropout, training=self.training)
         x = self.out_att(x, adj)
-        x_graph = torch.sum(x, dim=0).unsqueeze(0)
+        x_graph = torch.mean(x, dim=0).unsqueeze(0)
 
         for layer in self.dense:
             x_graph = F.dropout(x_graph, self.dropout, training=self.training)
@@ -102,4 +102,4 @@ class GAT(nn.Module):
 
         out =  self.out_layer(x_graph)
 
-        return F.sigmoid(out)
+        return F.softmax(out, dim=1)

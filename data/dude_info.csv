@@ -1,0 +1,103 @@
+,,#,Target Name,PDB,Description,Method,Substances,Clustered
+0,,1,aa2ar,3eml,Adenosine A2a receptor,By Hand,3057,482
+1,,2,abl1,2hzi,Tyrosine-protein kinase ABL,Auto,409,182
+2,,3,ace,3bkl,Angiotensin-converting enzyme,Auto,749,282
+3,,4,aces,1e66,Acetylcholinesterase,Auto,1581,453
+4,,5,ada,2e1w,Adenosine deaminase,Auto,98,93
+5,,6,ada17,2oi0,ADAM17,By Hand,1341,532
+6,,7,adrb1,2vt4,Beta-1 adrenergic receptor,By Hand,648,247
+7,,8,adrb2,3ny8,Beta-2 adrenergic receptor,Auto,602,231
+8,,9,akt1,3cqw,Serine/threonine-protein kinase AKT,By Hand,585,293
+9,,10,akt2,3d0e,Serine/threonine-protein kinase AKT2,By Hand,234,117
+10,,11,aldr,2hv5,Aldose reductase,Auto,604,159
+11,,12,ampc,1l2s,Beta-lactamase,By Hand,48,48
+12,,13,andr,2am9,Androgen Receptor,Auto,1046,269
+13,,14,aofb,1s3b,Monoamine oxidase B,By Hand,438,122
+14,,15,bace1,3l5d,Beta-secretase 1,Auto,595,283
+15,,16,braf,3d4q,Serine/threonine-protein kinase B-raf,Auto,317,152
+16,,17,cah2,1bcd,Carbonic anhydrase II,Auto,1924,492
+17,,18,casp3,2cnk,Caspase-3,By Hand,470,199
+18,,19,cdk2,1h00,Cyclin-dependent kinase 2,By Hand,1310,474
+19,,20,comt,3bwm,Catechol O-methyltransferase,By Hand,41,41
+20,,21,cp2c9,1r9o,Cytochrome P450 2C9,By Hand,145,120
+21,,22,cp3a4,3nxu,Cytochrome P450 3A4,By Hand,302,170
+22,,23,csf1r,3krj,Macrophage colony stimulating factor receptor,By Hand,385,166
+23,,24,cxcr4,3odu,C-X-C chemokine receptor type 4,By Hand,40,40
+24,,25,def,1lru,Peptide deformylase,By Hand,171,102
+25,,26,dhi1,3frj,11-beta-hydroxysteroid dehydrogenase 1,By Hand,836,387
+26,,27,dpp4,2i78,Dipeptidyl peptidase IV,Auto,1939,533
+27,,28,drd3,3pbl,Dopamine D3 receptor,By Hand,2113,480
+28,,29,dyr,3nxo,Dihydrofolate reductase,Auto,1082,231
+29,,30,egfr,2rgp,Epidermal growth factor receptor erbB1,By Hand,1612,542
+30,,31,esr1,1sj0,Estrogen receptor alpha,Auto,1297,383
+31,,32,esr2,2fsz,Estrogen receptor beta,Auto,1343,367
+32,,33,fa10,3kl6,Coagulation factor X,Auto,3090,537
+33,,34,fa7,1w7x,Coagulation factor VII,Auto,303,114
+34,,35,fabp4,2nnq,Fatty acid binding protein adipocyte,Auto,47,47
+35,,36,fak1,3bz3,Focal adhesion kinase 1,Auto,101,100
+36,,37,fgfr1,3c4f,Fibroblast growth factor receptor 1,Auto,327,139
+37,,38,fkb1a,1j4h,FK506-binding protein 1A,Auto,159,111
+38,,39,fnta,3e37,Protein farnesyltransferase/geranylgeranyltransferase type I alpha subunit,By Hand,1430,592
+39,,40,fpps,1zw5,Farnesyl diphosphate synthase,By Hand,85,85
+40,,41,gcr,3bqd,Glucocorticoid receptor,Auto,972,258
+41,,42,glcm,2v3f,Beta-glucocerebrosidase,Auto,54,54
+42,,43,gria2,3kgc,"Glutamate receptor ionotropic, AMPA 2",By Hand,476,158
+43,,44,grik1,1vso,Glutamate receptor ionotropic kainate 1,Auto,136,101
+44,,45,hdac2,3max,Histone deacetylase 2,By Hand,407,185
+45,,46,hdac8,3f07,Histone deacetylase 8,By Hand,309,170
+46,,47,hivint,3nf7,Human immunodeficiency virus type 1 integrase,By Hand,167,100
+47,,48,hivpr,1xl2,Human immunodeficiency virus type 1 protease,By Hand,1468,536
+48,,49,hivrt,3lan,Human immunodeficiency virus type 1 reverse transcriptase,Auto,1178,338
+49,,50,hmdh,3ccw,HMG-CoA reductase,Auto,527,170
+50,,51,hs90a,1uyg,Heat shock protein HSP 90-alpha,By Hand,88,88
+51,,52,hxk4,3f9m,Hexokinase type IV,Auto,136,92
+52,,53,igf1r,2oj9,Insulin-like growth factor I receptor,Auto,370,148
+53,,54,inha,2h7l,Enoyl-[acyl-carrier-protein] reductase,Auto,44,44
+54,,55,ital,2ica,Leukocyte adhesion glycoprotein LFA-1 alpha,Auto,324,138
+55,,56,jak2,3lpb,Tyrosine-protein kinase JAK2,By Hand,246,130
+56,,57,kif11,3cjo,Kinesin-like protein 1,Auto,272,116
+57,,58,kit,3g0e,Stem cell growth factor receptor,By Hand,378,166
+58,,59,kith,2b8t,Thymidine kinase,Auto,57,57
+59,,60,kpcb,2i0e,Protein kinase C beta,By Hand,331,135
+60,,61,lck,2of2,Tyrosine-protein kinase LCK,Auto,916,420
+61,,62,lkha4,3chp,Leukotriene A4 hydrolase,By Hand,343,171
+62,,63,mapk2,3m2w,MAP kinase-activated protein kinase 2,By Hand,184,101
+63,,64,mcr,2aa2,Mineralocorticoid receptor,Auto,201,94
+64,,65,met,3lq8,Hepatocyte growth factor receptor,Auto,333,166
+65,,66,mk01,2ojg,MAP kinase ERK2,Auto,79,79
+66,,67,mk10,2zdt,c-Jun N-terminal kinase 3,Auto,199,104
+67,,68,mk14,2qd9,MAP kinase p38 alpha,Auto,2205,578
+68,,69,mmp13,830c,Matrix metalloproteinase 13,Auto,1632,572
+69,,70,mp2k1,3eqh,Dual specificity mitogen-activated protein kinase kinase 1,By Hand,308,121
+70,,71,nos1,1qw6,"Nitric-oxide synthase, brain",By Hand,311,100
+71,,72,nram,1b9v,Neuraminidase,Auto,200,98
+72,,73,pa2ga,1kvo,Phospholipase A2 group IIA,By Hand,173,99
+73,,74,parp1,3l3m,Poly [ADP-ribose] polymerase-1,By Hand,1031,508
+74,,75,pde5a,1udt,Phosphodiesterase 5A,By Hand,958,398
+75,,76,pgh1,2oyu,Cyclooxygenase-1,By Hand,534,195
+76,,77,pgh2,3ln1,Cyclooxygenase-2,By Hand,1707,435
+77,,78,plk1,2owb,Serine/threonine-protein kinase PLK1,By Hand,227,107
+78,,79,pnph,3bgs,Purine nucleoside phosphorylase,Auto,225,103
+79,,80,ppara,2p54,Peroxisome proliferator-activated receptor alpha,Auto,1040,373
+80,,81,ppard,2znp,Peroxisome proliferator-activated receptor delta,Auto,699,240
+81,,82,pparg,2gtk,Peroxisome proliferator-activated receptor gamma,By Hand,1245,484
+82,,83,prgr,3kba,Progesterone receptor,Auto,1114,293
+83,,84,ptn1,2azr,Protein-tyrosine phosphatase 1B,Auto,264,130
+84,,85,pur2,1njs,GAR transformylase,Auto,50,50
+85,,86,pygm,1c8k,Muscle glycogen phosphorylase,By Hand,77,77
+86,,87,pyrd,1d3g,Dihydroorotate dehydrogenase,Auto,226,111
+87,,88,reni,3g6z,Renin,Auto,391,104
+88,,89,rock1,2etr,Rho-associated protein kinase 1,Auto,216,100
+89,,90,rxra,1mv9,Retinoid X receptor alpha,Auto,298,131
+90,,91,sahh,1li4,Adenosylhomocysteinase,Auto,63,63
+91,,92,src,3el8,Tyrosine-protein kinase SRC,By Hand,1269,524
+92,,93,tgfr1,3hmm,TGF-beta receptor type I,Auto,235,133
+93,,94,thb,1q4x,Thyroid hormone receptor beta-1,Auto,246,103
+94,,95,thrb,1ype,Thrombin,By Hand,2109,461
+95,,96,try1,2ayw,Trypsin I,Auto,924,449
+96,,97,tryb1,2zec,Tryptase beta-1,Auto,216,148
+97,,98,tysy,1syn,Thymidylate synthase,By Hand,390,109
+98,,99,urok,1sqt,Urokinase-type plasminogen activator,Auto,372,162
+99,,100,vgfr2,2p2i,Vascular endothelial growth factor receptor 2,Auto,2320,409
+100,,101,wee1,3biz,Serine/threonine-protein kinase WEE1,Auto,221,102
+101,,102,xiap,3hl5,Inhibitor of apoptosis protein 3,By Hand,100,100

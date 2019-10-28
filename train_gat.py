@@ -14,7 +14,7 @@ from torch.utils.data.sampler import SubsetRandomSampler
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 
-from data_utils import PDBBindDataset, accuracy
+from data_utils import PDBBindDataset, DockingDataset, accuracy
 from models import GAT
 from hparams import Hparams
 
@@ -38,14 +38,11 @@ if args.cuda:
     torch.cuda.manual_seed(args.seed)
 
 # Load data
-dataset = PDBBindDataset(num_positive=args.num_positive,
-                         num_negative=args.num_negative)
-dataset_size = len(dataset)
-indices = list(range(dataset_size))
-split = int(np.floor(args.train_test_split * dataset_size))
-np.random.shuffle(indices)
-train_indices, test_indices, val_indices \
-    = indices[2*split:], indices[:split], indices[split:2*split]
+dataset = DockingDataset(num_positive=args.num_positive,
+                         num_negative=args.num_negative,
+                         seed=args.seed,
+                         train_test_split=args.train_test_split)
+train_indices, test_indices, val_indices = dataset.__train_test_split__()
 
 train_sampler = SubsetRandomSampler(train_indices)
 test_sampler = SubsetRandomSampler(test_indices)
@@ -64,7 +61,7 @@ val_loader = DataLoader(dataset,
                         batch_size=1,
                         sampler=val_sampler)
 
-model = GAT(nclass=1,
+model = GAT(nclass=dataset.__nlabels__(),
             nfeat=dataset.__nfeats__(), 
             nhid=140,
             nheads=4,
@@ -75,7 +72,7 @@ model = GAT(nclass=1,
 optimizer = optim.Adam(model.parameters(), 
                        lr=args.lr, 
                        weight_decay=args.weight_decay)
-criterion = nn.BCELoss()
+criterion = nn.CrossEntropyLoss()
 
 if args.cuda:
     model.cuda()
@@ -98,8 +95,8 @@ def train(epoch):
 
             output = model(x=X.squeeze(), 
                            adj=A2.squeeze())
-            loss_train = criterion(output, label.float())
-            acc_train = accuracy(output, label)
+            loss_train = criterion(output, label.view(-1))
+            acc_train = accuracy(output, label.view(-1))
 
             losses_batch.append(loss_train)
             acc_batch.append(acc_train)
@@ -142,8 +139,8 @@ def evaluate(epoch):
 
             output = model(x=X.squeeze(), 
                            adj=A2.squeeze())
-            loss_val = criterion(output, label.float())
-            acc_val = accuracy(output, label)
+            loss_val = criterion(output, label.view(-1))
+            acc_val = accuracy(output, label.view(-1))
 
             losses_batch.append(loss_val)
             acc_batch.append(acc_val)
@@ -181,8 +178,8 @@ def compute_test():
 
             output = model(x=X.squeeze(), 
                         adj=A2.squeeze())
-            loss_test = criterion(output, label.float())
-            acc_test = accuracy(output, label)
+            loss_test = criterion(output, label.view(-1))
+            acc_test = accuracy(output, label.view(-1))
             
             losses_batch.append(loss_test)
             acc_batch.append(acc_test)

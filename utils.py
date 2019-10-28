@@ -1,7 +1,6 @@
 from rdkit import Chem
 from rdkit.Chem import rdmolfiles
 from rdkit.Chem import rdmolops
-from rdkit.Chem import AllChem
 import numpy as np
 import mdtraj as md
 import tempfile
@@ -160,40 +159,23 @@ def combine_mdtraj(protein_traj, ligand_traj):
     return protein_traj
 
 
-def pdb2graph(pdbid, data_dir='./data/pdbbind/v2018'):
-    """
-    Input:
-        pdbid: str. protein code from PDBBind
-    Returns:
-        tuple of tuples. Graph representation of nodes
-    """
+def get_molecules_from_pdb(protein_pdb, ligand_pdb):
+    # TODO Find better way to write tmp complex file
+    complex_traj = combine_mdtraj(md.load(protein_pdb),
+                                  md.load(ligand_pdb))
+    tmpfile = tempfile.mkstemp(suffix='.pdb')
+    f, comp_pdb = tmpfile
 
-    protein_pdb_file = os.path.join(
-        data_dir, pdbid, "{}_pocket.pdb".format(pdbid))
-    ligand_pdb_file = os.path.join(
-        data_dir, pdbid, "{}_ligand.pdb".format(pdbid))
+    complex_traj.save(comp_pdb)
 
-    if not os.path.exists(protein_pdb_file) or \
-        not os.path.exists(ligand_pdb_file):
-        raise IOError(".pdb file not found in {}".format(
-            os.path.join(data_dir, pdbid)))
+    protein = rdmolfiles.MolFromPDBFile(protein_pdb)
+    ligand = rdmolfiles.MolFromPDBFile(ligand_pdb)
+    compl = rdmolfiles.MolFromPDBFile(comp_pdb)
 
-    # combining protein pdb file and ligand pdb file to one pdb file
-    protein_traj = md.load(protein_pdb_file)
-    ligand_traj = md.load(ligand_pdb_file)
+    os.close(f)
+    os.remove(comp_pdb)
 
-    complex_traj = combine_mdtraj(md.load(protein_pdb_file),
-                                  md.load(ligand_pdb_file))
-    tempdir = tempfile.mkdtemp()
-    complex_traj.save(os.path.join(tempdir, 'complex.pdb'))
-
-    protein = rdmolfiles.MolFromPDBFile(protein_pdb_file)
-    ligand = rdmolfiles.MolFromPDBFile(ligand_pdb_file)
-    compl = AllChem.MolFromPDBFile(os.path.join(tempdir, 'complex.pdb'))
-
-    return (build_graph_from_molecule(protein),
-            build_graph_from_molecule(ligand),
-            build_graph_from_molecule(compl))
+    return (protein, ligand, compl)   
 
 
 def build_p2l_distance_matrix(protein_adj_list,
@@ -265,11 +247,25 @@ def build_adjacency_matrix(adj_list):
 
     return adjacency_matrix
 
-def get_pdbbind_features(pdbid, data_dir='./data/pdbbind/v2018'):
-    (protein_graph, ligand_graph, complex_graph) = pdb2graph(pdbid, data_dir)
-    node_feat_p, adj_list_p = protein_graph
-    node_feat_l, adj_list_l = ligand_graph
-    node_feat_c, adj_list_c = complex_graph
+
+def get_pdb_features(protein_pdb_file,
+                     ligand_pdb_file,
+                     data_dir='./data/pdbbind/v2018'):
+    protein_pdb_file = os.path.join(data_dir, protein_pdb_file)
+    ligand_pdb_file = os.path.join(data_dir, ligand_pdb_file)
+
+    if not os.path.exists(protein_pdb_file):
+        raise IOError(".pdb file not found in " + protein_pdb_file)
+    if not os.path.exists(ligand_pdb_file):
+        raise IOError(".pdb file not found in " + ligand_pdb_file)
+
+    
+    (protein, ligand, compl) = get_molecules_from_pdb(
+        protein_pdb_file, ligand_pdb_file)
+
+    node_feat_p, adj_list_p = build_graph_from_molecule(protein)
+    node_feat_l, adj_list_l = build_graph_from_molecule(ligand)
+    node_feat_c, adj_list_c = build_graph_from_molecule(compl)
 
     num_p_atoms = len(adj_list_p)
     num_l_atoms = len(adj_list_l)

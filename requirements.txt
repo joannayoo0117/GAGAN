@@ -13,4 +13,5 @@ nglview==2.7.1
 mdtraj==1.9.3
 biopython==1.74
 future==0.18.1
+networkx==2.4
 #torch==1.2.0
