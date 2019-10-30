@@ -225,6 +225,7 @@ for epoch in range(args.epochs):
         loss_values.append(loss)
 
     if epoch % args.validate_every_n_epochs == 0:
+        print(model.attentions[0].W.data)
         evaluate(epoch)
         torch.save(model.state_dict(), 
             '{}/{}.pkl'.format(args.model_dir, epoch))

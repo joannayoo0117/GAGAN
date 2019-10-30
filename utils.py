@@ -5,6 +5,7 @@ import numpy as np
 import mdtraj as md
 import tempfile
 import os
+from deepchem.feat.mol_graphs import ConvMol
 
 # TODO change atom list to all atoms
 _possible_atom_list =  ['C', 'N', 'O', 'S', 'F', 'Si', 'P', 'Cl', 'Br', 'Mg',
@@ -276,3 +277,32 @@ def get_pdb_features(protein_pdb_file,
     A2[:dim_p, -dim_l:] = D.transpose() 
 
     return X, A, A2
+
+
+def get_convmol_features(protein_pdb_file,
+                         ligand_pdb_file,
+                         data_dir='./data/pdbbind/v2018'):
+    protein_pdb_file = os.path.join(data_dir, protein_pdb_file)
+    ligand_pdb_file = os.path.join(data_dir, ligand_pdb_file)
+
+    if not os.path.exists(protein_pdb_file):
+        raise IOError(".pdb file not found in " + protein_pdb_file)
+    if not os.path.exists(ligand_pdb_file):
+        raise IOError(".pdb file not found in " + ligand_pdb_file)
+
+    
+    (_, _, compl) = get_molecules_from_pdb(
+        protein_pdb_file, ligand_pdb_file)
+
+    # This is from deepchem.models.graph_models.GraphConv 
+    # default generator
+    nodes, adj_list = build_graph_from_molecule(compl)
+    convmol = ConvMol(nodes, adj_list)
+    multiConvMol = convmol.agglomerate_mols([convmol])
+    (node_feat, deg_slice, membership, deg_adj_list) = \
+        (multiConvMol.get_atom_features(), 
+         multiConvMol.deg_slice, 
+         np.array(multiConvMol.membership),
+         multiConvMol.get_deg_adjacency_lists())
+
+    return (node_feat, deg_slice, membership, deg_adj_list)

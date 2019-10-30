@@ -18,9 +18,9 @@ class Hparams:
         help='Validate and save model every n epochs.')
     parser.add_argument('--batch_size', type=int, default=10,
         help='Batch size for training / testing')
-    parser.add_argument('--lr', type=float, default=0.005,
+    parser.add_argument('--lr', type=float, default=0.0005,
         help='Initial learning rate.')
-    parser.add_argument('--weight_decay', type=float, default=5e-4,
+    parser.add_argument('--weight_decay', type=float, default=0.0,
         help='Weight decay (L2 loss on parameters).')
 
     parser.add_argument('--train_test_split', type=float, default=0.05,

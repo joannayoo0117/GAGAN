@@ -100,10 +100,30 @@ class GAT(nn.Module):
         X_graph = torch.mean(X, dim=0).unsqueeze(0)
 
         for layer in self.dense:
-            X_graph = F.dropout(X_graph, self.dropout, training=self.training)
             X_graph = layer(X_graph)
             X_graph = F.relu(X_graph)
+            X_graph = F.dropout(X_graph, self.dropout, training=self.training)
 
         out =  self.out_layer(X_graph)
 
         return F.softmax(out, dim=1)
+
+"""
+class GCN(nn.Module):
+    # pytorch implementation of deepchem.models.graph_models.GraphConvModel
+
+    def __init__(self, nconvs, dim_conv, ndense, dim_dense, dropout, nfeat):
+        super(GAT, self).__init__()
+        self.dropout = dropout
+
+        self.graph_convs = [
+            GraphConv(nfeat, dim_conv, dropout=dropout) for _ in range(convs)]
+        self.graph_pool = GraphPool()
+        # self.dense = nn.Linear() # what is the size??
+        self.neural_fingerprint = GraphGather()
+
+    def forward(self, features):
+        X, deg_slice, membership, deg_adj_list = features
+        for gc in self.graph_convs:
+            X = gc()
+"""
