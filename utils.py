@@ -69,6 +69,36 @@ def encode_atom(atom, bool_id_feat=False,
     return np.array(result)
 
 
+def get_molecules_from_pdb(protein_pdb, ligand_pdb):
+    """
+    Input:
+        protein_pdb: str. Path to protein .pdb file
+        ligand_pdb: str. Path to ligand .pdb file
+    Output:
+        protein: rdkit.Chem.rdchem.Mol
+        ligand: rdkit.Chem.rdchem.Mol
+        compl: rdkit.Chem.rdchem.Mol
+    """
+
+    # TODO Currently combining protein and ligand with
+    # mdtraj. Verify this method.
+    complex_traj = combine_mdtraj(md.load(protein_pdb),
+                                  md.load(ligand_pdb))
+    tmpfile = tempfile.mkstemp(suffix='.pdb')
+    f, comp_pdb = tmpfile
+
+    complex_traj.save(comp_pdb)
+
+    protein = rdmolfiles.MolFromPDBFile(protein_pdb)
+    ligand = rdmolfiles.MolFromPDBFile(ligand_pdb)
+    compl = rdmolfiles.MolFromPDBFile(comp_pdb)
+
+    os.close(f)
+    os.remove(comp_pdb)
+
+    return (protein, ligand, compl)   
+
+
 def build_graph_from_molecule(mol, use_master_atom=False):
     """
     Param:
@@ -122,28 +152,6 @@ def build_graph_from_molecule(mol, use_master_atom=False):
     return (nodes, canon_adj_list)
 
 
-def smiles2graph(smiles_arr):
-    """
-    from deepchem.data.data_loader.featurize_smiles_df
-
-    smiles_arr: list of smiles str
-    """
-    features = []
-    invalid_ind = []
-
-    for ind, smiles in enumerate(smiles_arr):
-        try:
-            mol = Chem.MolFromSmiles(smiles)
-
-            feature = build_graph_from_molecule(mol)
-            features.append(feature)
-
-        except:
-            invalid_ind.append(ind)
-
-    return features, invalid_ind
-
-
 def combine_mdtraj(protein_traj, ligand_traj):
     """
     TODO Combining molecules this way is not stable.
@@ -157,25 +165,6 @@ def combine_mdtraj(protein_traj, ligand_traj):
     protein_traj.topology.create_standard_bonds()
 
     return protein_traj
-
-
-def get_molecules_from_pdb(protein_pdb, ligand_pdb):
-    # TODO Find better way to write tmp complex file
-    complex_traj = combine_mdtraj(md.load(protein_pdb),
-                                  md.load(ligand_pdb))
-    tmpfile = tempfile.mkstemp(suffix='.pdb')
-    f, comp_pdb = tmpfile
-
-    complex_traj.save(comp_pdb)
-
-    protein = rdmolfiles.MolFromPDBFile(protein_pdb)
-    ligand = rdmolfiles.MolFromPDBFile(ligand_pdb)
-    compl = rdmolfiles.MolFromPDBFile(comp_pdb)
-
-    os.close(f)
-    os.remove(comp_pdb)
-
-    return (protein, ligand, compl)   
 
 
 def build_p2l_distance_matrix(protein_adj_list,
