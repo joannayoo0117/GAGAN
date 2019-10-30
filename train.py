@@ -225,7 +225,9 @@ for epoch in range(args.epochs):
         loss_values.append(loss)
 
     if epoch % args.validate_every_n_epochs == 0:
-        print(model.attentions[0].W.data)
+        for i, attn in enumerate(model.attentions):
+            with open('W_{}.txt'.format(i), 'a') as f:
+                f.write(str(model.attentions[0].W.data) + '\n')
         evaluate(epoch)
         torch.save(model.state_dict(), 
             '{}/{}.pkl'.format(args.model_dir, epoch))
