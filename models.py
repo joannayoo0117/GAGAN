@@ -6,10 +6,10 @@ from layers import DistanceAwareAdjacencyMatrix as DAAM
 from layers import GraphAttentionLayer as GAL
 
 
-class Model(nn.Module):
+class GAGAN(nn.Module):
     def __init__(self, n_out, n_feat, n_attns, n_dense, 
                  dim_attn, dim_dense, dropout):
-        super(Model, self).__init__()
+        super(GAGAN, self).__init__()
 
         self.adjacency_matrix_transformer = DAAM()
         self.dropout = dropout
@@ -58,13 +58,12 @@ class Model(nn.Module):
         return F.softmax(out, dim=1)
 
 
-
 class GAT(nn.Module):
     """
     Acknowledgement: https://github.com/Diego999/pyGAT
     """
     def __init__(self, nfeat, nhid, nclass, dropout, alpha, nheads,
-                nlinear, nhid_linear):
+                nlinear, nhid_linear, use_distance_aware_adj):
         """Dense version of GAT."""
         super(GAT, self).__init__()
         self.dropout = dropout
@@ -86,20 +85,45 @@ class GAT(nn.Module):
             self.add_module('dense_{}'.format(i), layer)
 
         self.out_layer = nn.Linear(nhid_linear, nclass)
+        self.use_distance_aware_adj = use_distance_aware_adj
 
 
-    def forward(self, x, adj):
-        x = F.dropout(x, self.dropout, training=self.training)
-        x = torch.cat([att(x, adj) for att in self.attentions], dim=1)
-        x = F.dropout(x, self.dropout, training=self.training)
-        x = self.out_att(x, adj)
-        x_graph = torch.mean(x, dim=0).unsqueeze(0)
+    def forward(self, X, A, A2):
+        adj = None
+        if self.use_distance_aware_adj: adj = A2
+        else: adj = A
+
+        X = F.dropout(X, self.dropout, training=self.training)
+        X = torch.cat([att(X, adj) for att in self.attentions], dim=1)
+        X = F.dropout(X, self.dropout, training=self.training)
+        X = self.out_att(X, adj)
+        X_graph = torch.mean(X, dim=0).unsqueeze(0)
 
         for layer in self.dense:
-            x_graph = F.dropout(x_graph, self.dropout, training=self.training)
-            x_graph = layer(x_graph)
-            x_graph = F.relu(x_graph)
+            X_graph = layer(X_graph)
+            X_graph = F.relu(X_graph)
+            X_graph = F.dropout(X_graph, self.dropout, training=self.training)
 
-        out =  self.out_layer(x_graph)
+        out =  self.out_layer(X_graph)
 
         return F.softmax(out, dim=1)
+
+"""
+class GCN(nn.Module):
+    # pytorch implementation of deepchem.models.graph_models.GraphConvModel
+
+    def __init__(self, nconvs, dim_conv, ndense, dim_dense, dropout, nfeat):
+        super(GAT, self).__init__()
+        self.dropout = dropout
+
+        self.graph_convs = [
+            GraphConv(nfeat, dim_conv, dropout=dropout) for _ in range(convs)]
+        self.graph_pool = GraphPool()
+        # self.dense = nn.Linear() # what is the size??
+        self.neural_fingerprint = GraphGather()
+
+    def forward(self, features):
+        X, deg_slice, membership, deg_adj_list = features
+        for gc in self.graph_convs:
+            X = gc()
+"""

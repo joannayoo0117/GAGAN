@@ -14,8 +14,8 @@ from torch.utils.data.sampler import SubsetRandomSampler
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 
-from data_utils import PDBBindDataset, DockingDataset, accuracy
-from models import Model
+from data_utils import PDBBindDataset, accuracy
+from models import GAGAN, GAT
 from hparams import Hparams
 
 hparams = Hparams()
@@ -61,13 +61,28 @@ val_loader = DataLoader(dataset,
                         batch_size=1,
                         sampler=val_sampler)
 
-model = Model(n_out=dataset.__nlabels__(),
-              n_feat=dataset.__nfeats__(), 
-              n_attns=args.n_attns, 
-              n_dense=args.n_dense,
-              dim_attn=args.dim_attn,
-              dim_dense=args.dim_dense,
-              dropout=args.dropout)
+model = None
+if args.model == 'GAGAN':
+    model = GAGAN(n_out=dataset.__nlabels__(),
+                  n_feat=dataset.__nfeats__(), 
+                  n_attns=args.n_attns, 
+                  n_dense=args.n_dense,
+                  dim_attn=args.dim_attn,
+                  dim_dense=args.dim_dense,
+                  dropout=args.dropout)
+elif args.model == 'GAT':
+    model = GAT(nclass=dataset.__nlabels__(),
+                nfeat=dataset.__nfeats__(), 
+                nhid=args.dim_attn,
+                nheads=args.n_attns,
+                nhid_linear=args.dim_dense,
+                nlinear=args.n_dense,
+                alpha=args.alpha,
+                dropout=args.dropout,
+                use_distance_aware_adj=args.use_dist_aware_adj)
+else:
+    raise ValueError('args.model should be one of GAGAN, GAT')
+
 optimizer = optim.Adam(model.parameters(), 
                        lr=args.lr, 
                        weight_decay=args.weight_decay)
@@ -201,19 +216,22 @@ def compute_test():
 # Train model
 t_total = time.time()
 loss_values = []
-bad_counter = 0
-best = args.epochs + 1
+#bad_counter = 0
+#best = args.epochs + 1
 best_epoch = 0
 for epoch in range(args.epochs):
     loss = train(epoch)
     if loss:
         loss_values.append(loss)
 
-    if epoch % 20 == 0:
+    if epoch % args.validate_every_n_epochs == 0:
+        for i, attn in enumerate(model.attentions):
+            with open('W_{}.txt'.format(i), 'a') as f:
+                f.write(str(model.attentions[0].W.data) + '\n')
         evaluate(epoch)
         torch.save(model.state_dict(), 
             '{}/{}.pkl'.format(args.model_dir, epoch))
-
+    """
     if loss_values[-1] < best:
         best = loss_values[-1]
         best_epoch = epoch
@@ -229,20 +247,17 @@ for epoch in range(args.epochs):
         epoch_nb = int(os.path.basename(file).split('.')[0])
         if epoch_nb < best_epoch:
             os.remove(file)
-
-files = glob.glob('{}/*.pkl'.format(args.model_dir))
-for file in files:
-    epoch_nb = int(os.path.basename(file).split('.')[0])
-    if epoch_nb > best_epoch:
-        os.remove(file)
+    """
 
 print("Optimization Finished!")
 print("Total time elapsed: {:.4f}s".format(time.time() - t_total))
 
 # Restore best model
-print('Loading {}th epoch'.format(best_epoch))
+last_epoch = max([int(os.path.basename(file).split('.')[0]) 
+                      for file in os.listdir(args.model_dir)])
+print('Loading {}th epoch'.format(last_epoch))
 model.load_state_dict(
-    torch.load('{}/{}.pkl'.format(args.model_dir, best_epoch)))
+    torch.load('{}/{}.pkl'.format(args.model_dir, last_epoch)))
 
 # Testing
 compute_test()

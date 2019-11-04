@@ -93,6 +93,10 @@ class GraphAttentionLayer(nn.Module):
 
 
 class DistanceAwareAdjacencyMatrix(nn.Module):
+    """
+    Note: 
+    This is not currently being used.
+    """
     def __init__(self, max_dist=5):
         super(DistanceAwareAdjacencyMatrix, self).__init__()
 

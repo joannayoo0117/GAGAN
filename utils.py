@@ -5,6 +5,7 @@ import numpy as np
 import mdtraj as md
 import tempfile
 import os
+from deepchem.feat.mol_graphs import ConvMol
 
 # TODO change atom list to all atoms
 _possible_atom_list =  ['C', 'N', 'O', 'S', 'F', 'Si', 'P', 'Cl', 'Br', 'Mg',
@@ -69,6 +70,36 @@ def encode_atom(atom, bool_id_feat=False,
     return np.array(result)
 
 
+def get_molecules_from_pdb(protein_pdb, ligand_pdb):
+    """
+    Input:
+        protein_pdb: str. Path to protein .pdb file
+        ligand_pdb: str. Path to ligand .pdb file
+    Output:
+        protein: rdkit.Chem.rdchem.Mol
+        ligand: rdkit.Chem.rdchem.Mol
+        compl: rdkit.Chem.rdchem.Mol
+    """
+
+    # TODO Currently combining protein and ligand with
+    # mdtraj. Verify this method.
+    complex_traj = combine_mdtraj(md.load(protein_pdb),
+                                  md.load(ligand_pdb))
+    tmpfile = tempfile.mkstemp(suffix='.pdb')
+    f, comp_pdb = tmpfile
+
+    complex_traj.save(comp_pdb)
+
+    protein = rdmolfiles.MolFromPDBFile(protein_pdb)
+    ligand = rdmolfiles.MolFromPDBFile(ligand_pdb)
+    compl = rdmolfiles.MolFromPDBFile(comp_pdb)
+
+    os.close(f)
+    os.remove(comp_pdb)
+
+    return (protein, ligand, compl)   
+
+
 def build_graph_from_molecule(mol, use_master_atom=False):
     """
     Param:
@@ -122,28 +153,6 @@ def build_graph_from_molecule(mol, use_master_atom=False):
     return (nodes, canon_adj_list)
 
 
-def smiles2graph(smiles_arr):
-    """
-    from deepchem.data.data_loader.featurize_smiles_df
-
-    smiles_arr: list of smiles str
-    """
-    features = []
-    invalid_ind = []
-
-    for ind, smiles in enumerate(smiles_arr):
-        try:
-            mol = Chem.MolFromSmiles(smiles)
-
-            feature = build_graph_from_molecule(mol)
-            features.append(feature)
-
-        except:
-            invalid_ind.append(ind)
-
-    return features, invalid_ind
-
-
 def combine_mdtraj(protein_traj, ligand_traj):
     """
     TODO Combining molecules this way is not stable.
@@ -157,25 +166,6 @@ def combine_mdtraj(protein_traj, ligand_traj):
     protein_traj.topology.create_standard_bonds()
 
     return protein_traj
-
-
-def get_molecules_from_pdb(protein_pdb, ligand_pdb):
-    # TODO Find better way to write tmp complex file
-    complex_traj = combine_mdtraj(md.load(protein_pdb),
-                                  md.load(ligand_pdb))
-    tmpfile = tempfile.mkstemp(suffix='.pdb')
-    f, comp_pdb = tmpfile
-
-    complex_traj.save(comp_pdb)
-
-    protein = rdmolfiles.MolFromPDBFile(protein_pdb)
-    ligand = rdmolfiles.MolFromPDBFile(ligand_pdb)
-    compl = rdmolfiles.MolFromPDBFile(comp_pdb)
-
-    os.close(f)
-    os.remove(comp_pdb)
-
-    return (protein, ligand, compl)   
 
 
 def build_p2l_distance_matrix(protein_adj_list,
@@ -287,3 +277,32 @@ def get_pdb_features(protein_pdb_file,
     A2[:dim_p, -dim_l:] = D.transpose() 
 
     return X, A, A2
+
+
+def get_convmol_features(protein_pdb_file,
+                         ligand_pdb_file,
+                         data_dir='./data/pdbbind/v2018'):
+    protein_pdb_file = os.path.join(data_dir, protein_pdb_file)
+    ligand_pdb_file = os.path.join(data_dir, ligand_pdb_file)
+
+    if not os.path.exists(protein_pdb_file):
+        raise IOError(".pdb file not found in " + protein_pdb_file)
+    if not os.path.exists(ligand_pdb_file):
+        raise IOError(".pdb file not found in " + ligand_pdb_file)
+
+    
+    (_, _, compl) = get_molecules_from_pdb(
+        protein_pdb_file, ligand_pdb_file)
+
+    # This is from deepchem.models.graph_models.GraphConv 
+    # default generator
+    nodes, adj_list = build_graph_from_molecule(compl)
+    convmol = ConvMol(nodes, adj_list)
+    multiConvMol = convmol.agglomerate_mols([convmol])
+    (node_feat, deg_slice, membership, deg_adj_list) = \
+        (multiConvMol.get_atom_features(), 
+         multiConvMol.deg_slice, 
+         np.array(multiConvMol.membership),
+         multiConvMol.get_deg_adjacency_lists())
+
+    return (node_feat, deg_slice, membership, deg_adj_list)

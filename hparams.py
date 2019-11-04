@@ -3,6 +3,9 @@ import argparse
 class Hparams:
     parser = argparse.ArgumentParser()
 
+    parser.add_argument('--model', choices=['GAGAN', 'GAT'], default='GAGAN',
+        help='Model used for training')
+
     parser.add_argument('--no-cuda', action='store_true', default=False,
         help='Disables CUDA training.')
     parser.add_argument('--cuda_device', type=int, default=0,
@@ -11,11 +14,13 @@ class Hparams:
         help='Random seed.')
     parser.add_argument('--epochs', type=int, default=10000,
         help='Number of epochs to train.')
+    parser.add_argument('--validate_every_n_epochs', type=int, default=20,
+        help='Validate and save model every n epochs.')
     parser.add_argument('--batch_size', type=int, default=10,
         help='Batch size for training / testing')
-    parser.add_argument('--lr', type=float, default=0.005,
+    parser.add_argument('--lr', type=float, default=0.0005,
         help='Initial learning rate.')
-    parser.add_argument('--weight_decay', type=float, default=5e-4,
+    parser.add_argument('--weight_decay', type=float, default=0.0,
         help='Weight decay (L2 loss on parameters).')
 
     parser.add_argument('--train_test_split', type=float, default=0.05,
@@ -43,3 +48,9 @@ class Hparams:
         help='Directory to save model')
     parser.add_argument('--log_dir', type=str, default='./logs',
         help='Directory to save logs')
+
+
+    parser.add_argument('--alpha', type=float, default=0.2,
+        help='For GAT only. Constant for leakyrelu')
+    parser.add_argument('--use_dist_aware_adj', action='store_true', 
+        default=False, help='For GAT only. Specifies adjacency matrix type')
