@@ -48,15 +48,15 @@ train_sampler = SubsetRandomSampler(train_indices)
 test_sampler = SubsetRandomSampler(test_indices)
 val_sampler = SubsetRandomSampler(val_indices)
 
-train_loader = DataLoader(dataset, 
+train_loader = DataLoader(dataset,
                           #batch_size=args.batch_size,
                           batch_size=1, # Loads graph one at a time
                           sampler=train_sampler)
-test_loader = DataLoader(dataset, 
+test_loader = DataLoader(dataset,
                          #batch_size=args.batch_size,
                          batch_size=1,
                          sampler=test_sampler)
-val_loader = DataLoader(dataset, 
+val_loader = DataLoader(dataset,
                         #batch_size=args.batch_size,
                         batch_size=1,
                         sampler=val_sampler)
@@ -64,15 +64,15 @@ val_loader = DataLoader(dataset,
 model = None
 if args.model == 'GAGAN':
     model = GAGAN(n_out=dataset.__nlabels__(),
-                  n_feat=dataset.__nfeats__(), 
-                  n_attns=args.n_attns, 
+                  n_feat=dataset.__nfeats__(),
+                  n_attns=args.n_attns,
                   n_dense=args.n_dense,
                   dim_attn=args.dim_attn,
                   dim_dense=args.dim_dense,
                   dropout=args.dropout)
 elif args.model == 'GAT':
     model = GAT(nclass=dataset.__nlabels__(),
-                nfeat=dataset.__nfeats__(), 
+                nfeat=dataset.__nfeats__(),
                 nhid=args.dim_attn,
                 nheads=args.n_attns,
                 nhid_linear=args.dim_dense,
@@ -83,8 +83,8 @@ elif args.model == 'GAT':
 else:
     raise ValueError('args.model should be one of GAGAN, GAT')
 
-optimizer = optim.Adam(model.parameters(), 
-                       lr=args.lr, 
+optimizer = optim.Adam(model.parameters(),
+                       lr=args.lr,
                        weight_decay=args.weight_decay)
 criterion = nn.CrossEntropyLoss()
 
@@ -95,12 +95,13 @@ if args.cuda:
 def train(epoch):
     t = time.time()
     model.train()
-    optimizer.zero_grad()
 
     losses_batch = []
     acc_batch = []
     for _ in range(args.batch_size): # not really "the batch"
         try:
+            optimizer.zero_grad()
+
             (X, A, A2), label = next(iter(train_loader))
             if args.cuda:
                 X = X.cuda()
@@ -108,8 +109,8 @@ def train(epoch):
                 A2 = A2.cuda()
                 label = label.cuda()
 
-            output = model(X=X.squeeze(), 
-                           A=A.squeeze(), 
+            output = model(X=X.squeeze(),
+                           A=A.squeeze(),
                            A2=A2.squeeze())
             loss_train = criterion(output, label.view(-1))
             acc_train = accuracy(output, label.view(-1))
@@ -154,8 +155,8 @@ def evaluate(epoch):
                 A2 = A2.cuda()
                 label = label.cuda()
 
-            output = model(X=X.squeeze(), 
-                           A=A.squeeze(), 
+            output = model(X=X.squeeze(),
+                           A=A.squeeze(),
                            A2=A2.squeeze())
             loss_val = criterion(output, label.view(-1))
             acc_val = accuracy(output, label.view(-1))
@@ -195,17 +196,17 @@ def compute_test():
                 A2 = A2.cuda()
                 label = label.cuda()
 
-            output = model(X=X.squeeze(), 
-                        A=A.squeeze(), 
+            output = model(X=X.squeeze(),
+                        A=A.squeeze(),
                         A2=A2.squeeze())
             loss_test = criterion(output, label.view(-1))
             acc_test = accuracy(output, label.view(-1))
-            
+
             losses_batch.append(loss_test)
             acc_batch.append(acc_test)
         except BaseException as e:
             print(e)
-    
+
     avg_loss = torch.mean(torch.Tensor(losses_batch))
     avg_acc = torch.mean(torch.Tensor(acc_batch))
 
@@ -229,7 +230,7 @@ for epoch in range(args.epochs):
             with open('W_{}.txt'.format(i), 'a') as f:
                 f.write(str(model.attentions[0].W.data) + '\n')
         evaluate(epoch)
-        torch.save(model.state_dict(), 
+        torch.save(model.state_dict(),
             '{}/{}.pkl'.format(args.model_dir, epoch))
     """
     if loss_values[-1] < best:
@@ -253,7 +254,7 @@ print("Optimization Finished!")
 print("Total time elapsed: {:.4f}s".format(time.time() - t_total))
 
 # Restore best model
-last_epoch = max([int(os.path.basename(file).split('.')[0]) 
+last_epoch = max([int(os.path.basename(file).split('.')[0])
                       for file in os.listdir(args.model_dir)])
 print('Loading {}th epoch'.format(last_epoch))
 model.load_state_dict(
